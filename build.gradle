@@ -1,0 +1,57 @@
+buildscript {
+    ext {
+        compose_ui_version = '1.1.1'
+        retrofitVersion = '2.9.0'
+    }
+    repositories {
+        google()
+        maven { url "https://repo1.maven.org/maven2" }
+    }
+    dependencies {
+        classpath('org.openapitools:openapi-generator-gradle-plugin:6.2.1') {
+            exclude group: 'com.google.guava'
+        }
+    }
+}// Top-level build file where you can add configuration options common to all sub-projects/modules.
+plugins {
+    id 'com.android.application' version '7.3.0' apply false
+    id 'com.android.library' version '7.3.0' apply false
+    id 'org.jetbrains.kotlin.android' version '1.6.10' apply false
+    id 'org.jetbrains.kotlin.jvm' version '1.6.10' apply false
+    id 'de.undercouch.download' version '4.1.1'
+}
+apply plugin: 'org.openapi.generator'
+
+configurations {
+    compile.exclude module: 'guava-jdk5'
+}
+
+def basePackage = "com.example"
+def targetDir = "$rootDir/network"
+def targetFileName = "spec.json"
+
+task downloadFile(type: Download) {
+    doFirst {
+        delete(file(targetDir))
+        project.mkdir(targetDir)
+    }
+    src "https://simple-todo.simple-todo.workers.dev/api/$targetFileName"
+    dest rootDir
+    onlyIfModified true
+    useETag true
+}
+
+openApiGenerate {
+    generatorName = "kotlin"
+    inputSpec = "$rootDir/$targetFileName"
+    outputDir = targetDir
+    apiPackage = basePackage.concat(".api")
+    modelPackage = basePackage.concat(".model")
+    configOptions = [
+            dateLibrary: "java8",
+            library: "jvm-retrofit2",
+            sourceFolder: "src/main/java"
+    ]
+}
+
+tasks.openApiGenerate.dependsOn tasks.downloadFile
