@@ -40,8 +40,6 @@ class MainActivity : ComponentActivity() {
         })
     }
 
-    Log.d("Bonny", "${ApiClient.defaultBasePath}")
-
     setContent {
       OpenApiGeneratorSampleTheme {
         // A surface container using the 'background' color from the theme
